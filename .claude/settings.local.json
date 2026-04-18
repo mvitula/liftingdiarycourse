@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:C:\\\\Source\\\\Repos\\\\Claude_Code_Learn)",
+      "Bash(cd: C:\\\\Source\\\\Repos\\\\Claude_Code_Learn\\\\lifingdiarycourse)",
+      "mcp__Neon__list_projects",
+      "mcp__Neon__get_database_tables",
+      "mcp__Neon__describe_table_schema",
+      "mcp__Neon__run_sql_transaction"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "neon"
+  ],
+  "enableAllProjectMcpServers": true
+}
