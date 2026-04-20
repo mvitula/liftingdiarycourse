@@ -1,15 +1,7 @@
-"use client";
-
-import { useState } from "react";
-import { format } from "date-fns";
-import { CalendarIcon, Dumbbell } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { format, parseISO } from "date-fns";
+import { Dumbbell } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -17,54 +9,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getWorkoutsForDate } from "@/data/workouts";
+import { DatePicker } from "./_components/DatePicker";
 
-const mockWorkouts = [
-  {
-    id: 1,
-    name: "Morning Push Day",
-    exercises: [
-      { name: "Bench Press", sets: 4 },
-      { name: "Overhead Press", sets: 3 },
-      { name: "Tricep Dips", sets: 3 },
-    ],
-  },
-  {
-    id: 2,
-    name: "Evening Cardio",
-    exercises: [{ name: "Treadmill Run", sets: 1 }],
-  },
-];
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { userId } = await auth();
+  if (!userId) redirect("/");
 
-export default function DashboardPage() {
-  const [date, setDate] = useState<Date>(new Date());
-  const [open, setOpen] = useState(false);
+  const { date: dateParam } = await searchParams;
+  const date = dateParam ? parseISO(dateParam) : new Date();
+
+  const workouts = await getWorkoutsForDate(userId, date);
 
   return (
     <main className="container mx-auto max-w-2xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Dashboard</h1>
 
       <div className="mb-8">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-start gap-2 sm:w-auto">
-              <CalendarIcon className="h-4 w-4" />
-              {format(date, "do MMM yyyy")}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(d) => {
-                if (d) {
-                  setDate(d);
-                  setOpen(false);
-                }
-              }}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePicker selected={date} />
       </div>
 
       <section>
@@ -72,7 +38,7 @@ export default function DashboardPage() {
           Workouts for {format(date, "do MMM yyyy")}
         </h2>
 
-        {mockWorkouts.length === 0 ? (
+        {workouts.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-2 py-12 text-center text-muted-foreground">
               <Dumbbell className="h-8 w-8" />
@@ -81,27 +47,28 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="flex flex-col gap-4">
-            {mockWorkouts.map((workout) => (
+            {workouts.map((workout) => (
               <Card key={workout.id}>
                 <CardHeader>
-                  <CardTitle>{workout.name}</CardTitle>
+                  <CardTitle>{workout.name ?? "Untitled Workout"}</CardTitle>
                   <CardDescription>
-                    {workout.exercises.length} exercise
-                    {workout.exercises.length !== 1 ? "s" : ""}
+                    Started: {format(workout.startedAt, "do MMM yyyy")}
+                    {workout.completedAt && (
+                      <> · Completed: {format(workout.completedAt, "do MMM yyyy")}</>
+                    )}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
-                    {workout.exercises.map((exercise) => (
-                      <li key={exercise.name} className="flex justify-between">
-                        <span>{exercise.name}</span>
-                        <span>
-                          {exercise.sets} set{exercise.sets !== 1 ? "s" : ""}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
+                {workout.exercises.length > 0 && (
+                  <CardContent>
+                    <ul className="flex flex-col gap-1">
+                      {workout.exercises.map((exercise) => (
+                        <li key={exercise.id} className="text-sm">
+                          {exercise.order}. {exercise.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                )}
               </Card>
             ))}
           </div>
