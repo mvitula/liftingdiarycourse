@@ -9,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { getWorkoutsForDate } from "@/data/workouts";
 import { DatePicker } from "./_components/DatePicker";
 
@@ -26,23 +28,27 @@ export default async function DashboardPage({
   const workouts = await getWorkoutsForDate(userId, date);
 
   return (
-    <main className="container mx-auto max-w-2xl px-4 py-8">
+    <main className="container mx-auto max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Dashboard</h1>
 
-      <div className="mb-8">
-        <DatePicker selected={date} />
-      </div>
+      <div className="flex items-start gap-8">
+        <div className="shrink-0">
+          <DatePicker selected={date} />
+        </div>
 
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">
-          Workouts for {format(date, "do MMM yyyy")}
-        </h2>
+        <section className="min-w-0 flex-1">
+          <h2 className="mb-4 text-lg font-semibold">
+            Workouts for {format(date, "do MMM yyyy")}
+          </h2>
 
         {workouts.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-2 py-12 text-center text-muted-foreground">
               <Dumbbell className="h-8 w-8" />
               <p>No workouts logged for this date.</p>
+              <Button asChild className="mt-2">
+                <Link href="/dashboard/workout/new">Log New Workout</Link>
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -73,7 +79,8 @@ export default async function DashboardPage({
             ))}
           </div>
         )}
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
