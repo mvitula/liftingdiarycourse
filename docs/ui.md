@@ -18,7 +18,7 @@ All dates must be formatted using [date-fns](https://date-fns.org/).
 
 ### Required format
 
-Dates must display with an ordinal day, abbreviated month, and full year:
+Dates must display with an ordinal day, abbreviated month, and full year: 
 
 ```
 1st Sep 2025
